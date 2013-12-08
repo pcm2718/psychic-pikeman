@@ -1,0 +1,71 @@
+\documentclass{beamer}
+\usetheme{default}
+
+\usepackage{hyperref}
+
+\begin{document}
+
+\begin{frame}{Desert Fox: an AI for a Simple Wargame}
+Parker C. Michaelson
+\end{frame}
+
+
+
+\begin{frame}{Problem Definition}
+	We want to play a complex game, Memoir '44.
+	More importantly, we want to win Memoir '44 as often as possible.
+
+	\begin{itemize}
+		\item Memoir '44 is a tactical-scale wargame taking place on a board comprised of hexagons.
+		\item Combat takes place between individual units occupying hexes, with combat stats being dependent on terrain, cover and range to target.
+		\item The game also features stochastic elements such as dice and cards.
+		\item Some information about the state of the game is unknown to the AI, such as the hand of the enemy player or the configuration of the deck.
+	\end{itemize}
+\end{frame}
+
+
+
+\begin{frame}{Challenges Involved}
+	\begin{itemize}
+		\item Memoir '44 is a complex game.
+		\item Each unit typically has at least 10 moves available any given time, with the branching factor increasing in proportion to the number of friendly units and their proximity to enemy units.
+		\item Stochastic elements result in still larger increases in the branching factor of the state tree.
+		\item Together, these factors result in the need for an intelligent system to play the game.
+	\end{itemize}
+\end{frame}
+
+
+
+\begin{frame}{Solution: What}
+	\begin{itemize}
+		\item Monte Carlo Tree Search is a technique for making quick, accurate evaluations of possible state transitions. It has already seen much success in the classically hard game of Go.
+		\item \url{mcts.ai/about/index.html}
+		\item While MCTS is a model and heuristic free search technique, the choice of ``optimal'' child nodes in the expansion and selection process can be improved with the addition of a heuristic.
+		\item Q-Learning is a model-free reenforcement learning technique, which can be used to allow the decision heuristic for MCTS to be learned from playing Memoir '44.
+	\end{itemize}
+\end{frame}
+
+
+
+\begin{frame}{Solution: How}
+	Plan:
+	\begin{description}
+		\item[Phase 1] Implement the game itself, provide API hooks for human and machine players.
+		\item[Phase 2] Implement a version of the AI using only Monte Carlo Tree Search, with no heuristics.
+		\item[Phase 3] Re-implement the AI with a heuristic based around Q-Learning. Train this AI on the previous AI.
+		\item[Phase 4] Collect data and write report.
+	\end{description}
+\end{frame}
+
+
+
+\begin{frame}{Anticipated Results}
+	By the end of the project, I should have:
+	\begin{itemize}
+		\item An AI capable of playing and winning against human players.
+		\item A report describing the workings of the AI system and providing a log of its development.
+		\item Some fancy graphs to go with the final presentation of the project.
+	\end{itemize}
+\end{frame}
+
+\end{document}
