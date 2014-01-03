@@ -1,32 +1,69 @@
 import random
-from hextile import Hextile
+import array
+import copy
 
 
 
 class Board:
 
-    def __init__(self):
+    def __init__(self, max_x, max_y):
         # Set board parameters.
-        self.max_x = 13
-        self.max_y = 9
+        self.max_x = max_x
+        self.max_y = max_y
 
-        self.board = [ Hextile("plain", None) for i in range(0, self.max_x*self.max_y) ]
+        # This line is of questionable efficiency.
+        self.board = array.array('i', [ -2 for i in range(0, self.max_x*self.max_y) ])
 
-        self.terrain = dict()
-        self.terrain["plain"] = [False, False, False, 0]
+        self.movehash = {
+            "e": 1 ,
+            "w": -1 ,
+            "ne": self.max_x ,
+            "se": -self.max_x ,
+            "nw": self.max_x - 1 ,
+            "sw": -self.max_x - 1 ,
+        }
 
         for y in range(2, self.max_y, 2):
-           self.board[y*self.max_x - 1] = None
+            self.board[y*self.max_x - 1] = -1
 
         self.nextid = 0
-        self.units = dict()
-
+        self.units = []
+        self.teams = dict()
+        self.teams["red"] = []
+        self.teams["blu"] = []
         self.medals = dict()
+        self.medals["red"] = 0
+        self.medals["blu"] = 0
+
+
+
+    def get_tile_str(self, tile):
+        unit = self.units[tile]
+        tile_str = "    EMPTY     "
+
+        if tile >= 0:
+            tile_str = str(self.units[tile][0:3]).center(14)
+
+            if unit[1] == "red":
+                tile_str = "\033[91m" + tile_str
+            if unit[1] == "blu":
+                tile_str = "\033[94m" + tile_str
+
+            tile_str = tile_str + "\033[0m"
+
+        return tile_str
 
 
 
     def __str__(self):
-        return '\n'.join([str(self.board[y*self.max_x : (y+1)*self.max_x]) for y in reversed(range(0, self.max_y))])
+        # Forgive me this sinful formatting code.
+        return '\n\n'.join(
+                [
+                    ('       ' if y % 2 == 1 else '')
+                    +
+                    ' , '.join(map(lambda x : self.get_tile_str(x), self.board[y*self.max_x : (y+1)*self.max_x])) for y in reversed(range(0, self.max_y))
+                ]
+            )
 
 
 
@@ -35,13 +72,15 @@ class Board:
 
 
 
-    #def __getitem__(self, x, y):
-    #    return self.board[y%self.max_y][x%self.max_x]
+    def get_cpy(self):
+        cpy = Board(self.max_x, self.max_y)
+        cpy.board = copy.deepcopy(self.board)
+        cpy.nextid = self.nextid
+        cpy.units = copy.deepcopy(self.units)
+        cpy.teams = copy.deepcopy(self.teams)
+        cpy.medals = copy.deepcopy(self.medals)
 
-
-
-    #def __setitem__(self, x, y, tile):
-    #    self.board[y%self.max_y][x%self.max_x] = tile
+        return cpy
 
 
 
@@ -52,150 +91,69 @@ class Board:
         x = linear % self.max_x
         y = int(linear / self.max_x)
         return [x, y]
-
-
-
-    def award_medal(self, team):
-        if team not in self.medals:
-            self.medals[team] = 0
-        self.medals[team] += 1
+    
+    def get_parity(self, linear):
+        return int(linear / self.max_x) % 2
 
 
 
     def add_unit(self, x, y, team, hp):
         linear = self.get_linear(x, y)
-
-        if linear < 0 or linear > len(self.board):
-            raise ValueError("Insertion tile " + str([x, y]) + " does not exist.")
-        elif self.board[self.get_linear(x, y)] == None:
-            raise ValueError("Insertion tile " + str([x, y]) + " does not exist.")
-
-        self.board[linear].unit = [self.nextid, team, hp]
-
-        if team not in self.units:
-            self.units[team] = dict()
-        self.units[team][self.nextid] = linear
-
+        self.board[linear] = self.nextid
+        self.units.append([self.nextid, team, hp, linear])
+        self.teams[team].append(self.nextid)
         self.nextid += 1
 
-
-
-    def kill_unit(self, team, unitid):
-        if team not in self.units:
-            raise ValueError("Team " + str(team) + " does not exist.")
-        elif unitid not in self.units[team]:
-            raise ValueError("Unit ID " + str(unitid) + " is not on team " + str(team) + ".")
- 
-        self.board[self.units[team][unitid]].unit = None
-        del self.units[team][unitid]
+    def kill_unit(self, unitid):
+        self.board[self.units[unitid][3]] = -2
+        self.teams[self.units[unitid][1]].remove(unitid)
+        self.units[unitid] = None
 
 
 
-    def unit_section(self, team, unitid):
-        if team not in self.units:
-            raise ValueError("Team " + str(team) + " does not exist.")
-        elif unitid not in self.units[team]:
-            raise ValueError("Unit ID " + str(unitid) + " is not on team " + str(team) + ".")
+    def get_moves(self, unitid):
+        moves = []
 
-        unithex = self.get_cartesian(self.units[team][unitid])
+        old = self.units[unitid][3]
+        parity = self.get_parity(old)
 
-        # Determine row modifier.
-        mod = unithex[1] % 2
+        for heading in self.movehash.keys():
+            new = old + self.movehash[heading] + (parity and (heading[0] == 'n' or heading[0] == 's'))
+            # This trick won't work on boards of width 1 or 0.
+            if (new > 0 and new < len(self.board)) and (self.board[new] == -2) and (((old + new) % self.max_x) != (self.max_x - 1)):
+                moves.append(["move", unitid, heading])
 
-        if                             unithex[0] <= 3:
-            return 0
-        elif unithex[0] + mod >= 4 and unithex[0] <= 8:
-            return 1
-        elif unithex[0] + mod >= 9:
-            return 2
-        else:
-            raise ValueError("Gainax WTF error.")
+        return moves
 
 
 
-    def move_unit(self, team, unitid, heading):
-        if team not in self.units:
-            raise ValueError("Team " + str(team) + " does not exist.")
-        elif unitid not in self.units[team]:
-            raise ValueError("Unit ID " + str(unitid) + " is not on team " + str(team) + ".")
+    def get_fights(self, unitid):
+        fights = []
 
-        oldlinear = self.units[team][unitid]
+        old = self.units[unitid][3]
+        parity = self.get_parity(old)
 
-        oldhex = self.get_cartesian(oldlinear)
-        newhex = oldhex[:]
+        for heading in self.movehash.keys():
+            new = old + self.movehash[heading] + (parity and (heading[0] == 'n' or heading[0] == 's'))
+            # This trick won't work on boards of width 1 or 0.
+            if (new > 0 and new < len(self.board)) and (self.board[new] >= 0) and ((old + new) % self.max_x != self.max_x - 1) and (self.units[self.board[new]][1] != self.units[unitid][1]):
+                fights.append(["fight", unitid, self.board[new]])
 
-
-        if heading == "e":
-            newhex[0] += 1
-        elif heading == "w":
-            newhex[0] -= 1
-        elif heading == "ne":
-            newhex[1] += 1
-        elif heading == "se":
-            newhex[1] -= 1
-        elif heading == "nw":
-            newhex[0] -= 1
-            newhex[1] += 1
-        elif heading == "sw":
-            newhex[0] -= 1
-            newhex[1] -= 1
-        else:
-            raise ValueError("Unknown direction " + heading + " supplied.")
-
-        if newhex[0] < 0 or newhex[0] >= self.max_x or newhex[1] < 0 or newhex[1] >= self.max_y:
-            raise ValueError("Destination tile " + str(newhex) + " does not exist.")
-        elif self.board[newhex[1]*self.max_x + newhex[0]] == None:
-            raise ValueError("Destination tile " + str(newhex) + " does not exist.")
-        elif self.board[newhex[1]*self.max_x + newhex[0]].unit != None:
-            raise ValueError("Destination tile " + str(newhex) + " is already occupied.")
-        else:
-            newlinear = self.get_linear(newhex[0], newhex[1])
-            
-            self.board[newlinear].unit = self.board[oldlinear].unit
-            self.board[oldlinear].unit = None
-            self.units[team][unitid] = newlinear
-
-            # Idea, could replace this with a kill_unit and add unit. Would have to seperate kill_unit and award medal, though.
-            #unit = self.board[self.get_linear(oldhex[0], oldhex[1])].unit
-            #self.kill_unit(unitid, team)
-            #self.add_unit(newhex[0], newhex[1], unit[1], unit[2])
+        return fights
 
 
 
-    def fight(self, redteam, redid, bluteam, bluid, hp=None):
-        # Check for friendly fire.
-        if redteam == bluteam:
-            raise ValueError("Friendly fire, isn't.")
+    def move(self, unitid, heading):
+        old = self.units[unitid][3]
+        new = old + self.movehash[heading] + (self.get_parity(old) and (heading[0] == 'n' or heading[0] == 's'))
+        self.board[new] = self.board[old]
+        self.board[old] = -2
+        self.units[unitid][3] = new
 
-        # Make sure all the teams and units exist.
-        if redteam not in self.units:
-            raise ValueError("Team " + str(redteam) + " does not exist.")
-        elif redid not in self.units[redteam]:
-            raise ValueError("Unit ID " + str(redid) + " is not on team " + str(redteam) + ".")
-        elif bluteam not in self.units:
-            raise ValueError("Team " + str(bluteam) + " does not exist.")
-        elif bluid not in self.units[bluteam]:
-            raise ValueError("Unit ID " + str(bluid) + " is not on team " + str(bluteam) + ".")
 
-        # This is the range test condition, i'll need to modify this later.
-        elif False:
-            raise ValueError("Unit " + str(bluid) + " out of range of " + str(redid) + ".")
 
-        # This is the line of sight test condition, i'll need to modify this later.
-        elif False:
-            raise ValueError("No line of sight between units " + str(redid) + " and " + str(bluid) + ".")
-
-        # If we get here, then we initiate combat.
-        else:
-            if hp == None:
-                # Determine number of dice rolled. Fix this later to incorporate range and terrain.
-                rolled = 3
-
-                # Get results.
-                hp = sum([random.randint(0, 1) for i in range(0, rolled)])
-
-            self.board[self.units[bluteam][bluid]].unit[2] -= hp
-
-            if self.board[self.units[bluteam][bluid]].unit[2] <= 0:
-                self.kill_unit(bluteam, bluid)
-                self.award_medal(redteam)
+    def fight(self, redid, bluid):
+        self.units[bluid][2] -= sum([random.randint(0, 1) for i in range(0, 3)])
+        if self.units[bluid][2] <= 0:
+            self.kill_unit(bluid)
+            self.medals[self.units[redid][1]] += 1

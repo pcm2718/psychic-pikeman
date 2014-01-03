@@ -19,4 +19,4 @@ for team in [("red", 0), ("blu", dim-1)]:
 
 gm = GameMaster(board, MCTS(budget), Player())
 #cProfile.run('gm.play(loud=True)')
-print(gm.play(loud=False))
+print(gm.play(loud=True))

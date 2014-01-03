@@ -1,101 +1,89 @@
+import random
 from collections import OrderedDict
+
 from board import Board
-from deck import Deck
 from player import Player
+
 
 
 class GameMaster:
 
-    def __init__(self, boardinit, redtype, blutype):
-        # This might need to be deepcopy.
-        self.board = boardinit
+    def __init__(self, boardinit, redplayer, bluplayer):
+        self.board = boardinit.get_cpy()
 
         self.players = OrderedDict()
-        self.players["red"] = redtype("red")
-        self.players["blu"] = blutype("blu")
+        self.players["red"] = redplayer
+        self.players["blu"] = bluplayer
 
-        self.deck = Deck()
+        self.medal_win = 3
 
-        for player in self.players.keys():
-            for i in range(0, 5):
-                self.deck.give_card(player)
-
-
-        self.medal_win = 5
+        self.actionhash = {
+            "move" : Board.move ,
+            "fight" : Board.fight
+        }
 
 
 
-    def turn(self, name):
+    def turn(self, name, loud):
             player = self.players[name]
 
-            # Give the player an updated board. This should be a deepcopy later.
-            player.give_board(self.board)
-
-            # Get a card from the player.
-            card = player.get_card(self.deck.hands[name])
-            self.deck.take_card(name, card)
-
-            # Determine what units may be ordered by the player. Use a set.
-
-            # Get the units to be ordered from the player.
-            units = player.get_units(card)
-
-            # Might want to make sure units are unique, and do general verification.
-
             # This loop actually gets the orders for each unit.
-            for unit in units:
-                for i in range(0, 2):
-                    # Give the player an updated board. Make sure to copy this.
-                    player.give_board(self.board)
+            for i in range(0, 3):
+                # Give the player an updated board.
+                player.give_board(self.board)
 
-                    orders = []
+                actions = [None]
+                for unit in self.board.teams[name]:
+                    actions = actions + self.board.get_moves(unit)
+                    actions = actions + self.board.get_fights(unit)
+                action = player.get_action(name, actions)
 
-                    # Compute the possible orders that the unit may be given.
-                    headings = ["ne", "se", "nw", "sw", "e", "w"]
+                if action:
+                    self.actionhash[action[0]](self.board, action[1], action[2])
 
-                    for heading in headings:
-                        orders.append(["move", heading])
+                if loud:
+                    print("!!! " "Action : " + str(action) + " !!!")
 
+                if self.board.medals[name] >= self.medal_win:
+                    return True
 
-                    #for hextile in board.adjtiles(unit[0], unit[1]):
+            #if loud:
+            #    print("\n\n!!! " + name + "utility : " + str(MCTS.utility(board, name)) + " !!!\n\n")
 
-
-                    # Get the chosen order from the player.
-                    order = player.get_order(unit[0], unit[1], orders)
-
-                    # Movement, fighting and turn logic. May want to clean this up.
-                    if   order[0] == "move":
-                        self.board.move_unit(unit[0], unit[1], order[1])
-                    elif order[0] == "fight":
-                        self.board.fight(unit[0], unit[1], order[1], order[2])
-                        break
-                    else:
-                        break
-
-            # Deal a card to the player.
-            self.deck.deal(player)
+            return False
 
 
+    def play(self, loud=True):
+        if loud:
+            print("!!! Inital State !!!\n\n\n")
+            print(self.board)
+            print("\n\n\n")
 
-
-    def play(self):
+        turns = 0
         winner = None
 
-        # I need to add a lot of error checking here.
-        while True:
+        while winner == None:
             for name in self.players.keys():
-                self.turn(name)
-                
-            # Win condition. May need to revise this.
-            for x in board.medals.keys():
-                if board.medals[x] >= self.medal_win:
-                    winnner = x
+                if loud:
+                    print("\n\n\n!!! Turn " + str(turns) + ": " + name + " !!!\n")
+
+                if self.turn(name, loud):
+                    winner = name
                     break
-            else:
-                winnner = None
 
-            if winner != None:
-                break
+                # Win condition. May need to revise this.
+                for x in self.board.medals.keys():
+                    if loud:
+                        print('\n!!! Medals, ' + x + " : " + str(self.board.medals[x]) + " !!!\n")
+                    
+                if loud:
+                    print(self.board)
+                    # input("\n\n\nPress <enter> to continue ...\n\n\n")
+    
+            turns += 1
 
+        if loud:
+            print("\n\n\n!!! " + winner + " wins. !!!\n\n\n")
+
+        #return MCTS.utility(board, x)
         return winner
-
