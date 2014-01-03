@@ -1,0 +1,165 @@
+Size: 3, Budget 1:\n
+Wins: 129
+
+T: -2.444904942838998
+
+Result is statistically significant with confidence >95%.
+Size: 3, Budget 5:\n
+Wins: 132
+
+T: -2.0900972449880157
+
+Result is statistically significant with confidence >95%.
+Size: 3, Budget 10:\n
+Wins: 173
+
+T: 2.683110248620749
+
+Result is statistically significant with confidence >95%.
+Size: 3, Budget 50:\n
+Wins: 262
+
+T: 19.40935810378085
+
+Result is statistically significant with confidence >95%.
+Size: 3, Budget 100:\n
+Wins: 274
+
+T: 25.403603399782295
+
+Result is statistically significant with confidence >95%.
+Size: 3, Budget 500:\n
+Wins: 293
+
+T: 54.59951707431955
+
+Result is statistically significant with confidence >95%.
+Size: 3, Budget 1000:\n
+Wins: 292
+
+T: 50.802784817423856
+
+Result is statistically significant with confidence >95%.
+Size: 3, Budget 5000:\n
+Wins: 297
+
+T: 85.15576933188369
+
+Result is statistically significant with confidence >95%.
+Size: 3, Budget 10000:\n
+Wins: 295
+
+T: 65.28412478660125
+
+Result is statistically significant with confidence >95%.
+
+Size: 5, Budget 1:\n
+Wins: 139
+
+T: -1.2714753389322375
+
+Result is not statistically significant with confidence >95%.
+Size: 5, Budget 5:\n
+Wins: 140
+
+T: -1.1553447228301292
+
+Result is not statistically significant with confidence >95%.
+Size: 5, Budget 10:\n
+Wins: 166
+
+T: 1.8550222948632857
+
+Result is statistically significant with confidence >95%.
+Size: 5, Budget 50:\n
+Wins: 171
+
+T: 2.444904942838996
+
+Result is statistically significant with confidence >95%.
+Size: 5, Budget 100:\n
+Wins: 220
+
+T: 9.12383242841615
+
+Result is statistically significant with confidence >95%.
+Size: 5, Budget 500:\n
+Wins: 289
+
+T: 42.62899857310399
+
+Result is statistically significant with confidence >95%.
+Size: 5, Budget 1000:\n
+Wins: 295
+
+T: 65.28412478660125
+
+Result is statistically significant with confidence >95%.
+Size: 5, Budget 5000:\n
+Wins: 299
+
+T: 148.9999999999998
+
+Result is statistically significant with confidence >95%.
+Size: 5, Budget 10000:\n
+Wins: 300
+
+T: inf
+
+Result is statistically significant with confidence >95%.
+
+Size: 7, Budget 1:\n
+Wins: 137
+
+T: -1.5042667660444178
+
+Result is not statistically significant with confidence >95%.
+Size: 7, Budget 5:\n
+Wins: 124
+
+T: -3.0432789751879654
+
+Result is statistically significant with confidence >95%.
+Size: 7, Budget 10:\n
+Wins: 148
+
+T: -0.23057538271111105
+
+Result is not statistically significant with confidence >95%.
+Size: 7, Budget 50:\n
+Wins: 160
+
+T: 1.1553447228301292
+
+Result is not statistically significant with confidence >95%.
+Size: 7, Budget 100:\n
+Wins: 159
+
+T: 1.0393695399356127
+
+Result is not statistically significant with confidence >95%.
+Size: 7, Budget 500:\n
+Wins: 247
+
+T: 14.659559380533251
+
+Result is statistically significant with confidence >95%.
+Size: 7, Budget 1000:\n
+Wins: 266
+
+T: 21.09178358526389
+
+Result is statistically significant with confidence >95%.
+Size: 7, Budget 5000:\n
+Wins: 294
+
+T: 59.28554216842487
+
+Result is statistically significant with confidence >95%.
+Size: 7, Budget 10000:\n
+Wins: 300
+
+T: inf
+
+Result is statistically significant with confidence >95%.
+
