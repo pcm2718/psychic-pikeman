@@ -6,7 +6,7 @@ do
 
     for size in 3 5 7
     do
-    	echo -n "`grep "red" testlogs/testlog_${size}_${budget}.dat | wc -w` " >> lineplot.dat
+    	echo -n "`grep "red" ../tests/testdat/testlog_${size}_${budget}.dat | wc -w` " >> lineplot.dat
     done
 
     echo "" >> lineplot.dat
